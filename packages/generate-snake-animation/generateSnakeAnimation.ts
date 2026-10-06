@@ -8,6 +8,7 @@ import type { DrawOptions } from "@snk/svg-creator";
 import { snake4 } from "@snk/types/__fixtures__/snake";
 import { cellsToGrid } from "./cellsToGrid";
 import { extendSnakeTrail } from "./extendSnakeTrail";
+import { getSnakeLengths, snakeGrowth } from "./getSnakeLengths";
 
 export { basePalettes, palettes } from "./palettes";
 
@@ -57,8 +58,8 @@ export const generateSnakeAnimation = async (
   console.log("📡 computing best route");
   const chain = getBestRoute(grid, snake)!;
   chain.push(...getPathToPose(chain.slice(-1)[0], snake)!);
-  // Keep the proven route solver; extend the visible trail to five times its length.
-  const animationChain = extendSnakeTrail(chain, 20);
+  const animationChain = extendSnakeTrail(chain, snakeGrowth.maxLength);
+  const snakeLengths = getSnakeLengths(grid, chain);
 
   return Promise.all(
     outputs.map(async (out, i) => {
@@ -74,6 +75,7 @@ export const generateSnakeAnimation = async (
             animationChain,
             drawOptions,
             animationOptions,
+            snakeLengths,
           );
         }
         case "gif": {

@@ -117,7 +117,7 @@ var init_nixos_logo = __esm(() => {
 });
 
 // ../svg-creator/snake.ts
-var createSnake = (chain, { sizeCell }, duration) => {
+var createSnake = (chain, { sizeCell }, duration, lengths) => {
   const snakeN = chain[0] ? getSnakeLength(chain[0]) : 0;
   const snakeParts = Array.from({ length: snakeN }, () => []);
   for (const snake of chain) {
@@ -126,19 +126,48 @@ var createSnake = (chain, { sizeCell }, duration) => {
       snakeParts[i].push(cells[i]);
   }
   const svgElements = snakeParts.map((_, i) => {
-    const s = sizeCell * 0.9 * Math.max(0.05, 1 - i * 0.05);
+    const s = sizeCell * 0.9;
     const m = (sizeCell - s) / 2;
-    return h("use", {
-      class: `s s${i}`,
+    return `<g class="s s${i}">` + h("use", {
+      class: `b b${i}`,
       href: "#nixos-snowflake",
       x: m.toFixed(1),
       y: m.toFixed(1),
       width: s.toFixed(1),
       height: s.toFixed(1)
-    });
+    }) + "</g>";
   });
   const transform = ({ x, y }) => `transform:translate(${x * sizeCell}px,${y * sizeCell}px)`;
   const styles = [
+    `.b{transform-origin:${sizeCell / 2}px ${sizeCell / 2}px;animation:none linear ${duration}ms infinite}`,
+    ...snakeParts.flatMap((_, segment) => {
+      const scale = (length) => segment >= length ? 0 : 1 - 0.95 * segment / Math.max(1, length - 1);
+      const sizes = chain.map((_2, frame) => scale(lengths?.[frame] ?? snakeN));
+      const keyframes = sizes.flatMap((size, frame) => {
+        if (frame === 0)
+          return [{ t: 0, style: `transform:scale(${size})` }];
+        if (size === sizes[frame - 1])
+          return [];
+        return [
+          {
+            t: (frame - 1) / chain.length,
+            style: `transform:scale(${sizes[frame - 1]})`
+          },
+          { t: frame / chain.length, style: `transform:scale(${size})` }
+        ];
+      });
+      if (sizes.length) {
+        keyframes.push({
+          t: (chain.length - 1) / chain.length,
+          style: `transform:scale(${sizes.at(-1)})`
+        });
+        keyframes.push({ t: 1, style: `transform:scale(${sizes[0]})` });
+      }
+      return [
+        createAnimation(`b${segment}`, keyframes),
+        `.b${segment}{transform:scale(${sizes[0] ?? 0});animation-name:b${segment}}`
+      ];
+    }),
     `.s{
       shape-rendering: geometricPrecision;
       animation: none linear ${duration}ms infinite
@@ -289,7 +318,7 @@ var getCellsFromGrid = ({ width, height }) => Array.from({ length: width }, (_, 
     }
   }
   return livingCells;
-}, createSvg = (grid, cells, chain, drawOptions, animationOptions) => {
+}, createSvg = (grid, cells, chain, drawOptions, animationOptions, snakeLengths) => {
   const width = (grid.width + 2) * drawOptions.sizeCell;
   const height = (grid.height + 5) * drawOptions.sizeCell;
   const duration = animationOptions.stepDurationMs * chain.length;
@@ -297,7 +326,7 @@ var getCellsFromGrid = ({ width, height }) => Array.from({ length: width }, (_, 
   const elements = [
     createGrid(livingCells, drawOptions, duration),
     createStack(livingCells, drawOptions, grid.width * drawOptions.sizeCell, (grid.height + 2) * drawOptions.sizeCell, duration),
-    createSnake(chain, drawOptions, duration)
+    createSnake(chain, drawOptions, duration, snakeLengths)
   ];
   const viewBox = [
     -drawOptions.sizeCell,
@@ -2072,6 +2101,23 @@ var extendSnakeTrail = (chain, length) => {
   })));
 };
 
+// ../generate-snake-animation/getSnakeLengths.ts
+var snakeGrowth = {
+  initialLength: 4,
+  cellsPerSegment: 10,
+  maxLength: 20
+};
+var getSnakeLengths = (grid, chain) => {
+  const eaten = new Set;
+  return chain.map((snake) => {
+    const x = getHeadX(snake);
+    const y = getHeadY(snake);
+    if (isInside(grid, x, y) && getColor(grid, x, y))
+      eaten.add(`${x},${y}`);
+    return Math.min(snakeGrowth.maxLength, snakeGrowth.initialLength + Math.floor(eaten.size / snakeGrowth.cellsPerSegment));
+  });
+};
+
 // ../generate-snake-animation/palettes.ts
 var basePalettes = {
   "github-light": {
@@ -2166,7 +2212,8 @@ var generateSnakeAnimation = async (source, outputs) => {
   console.log("\uD83D\uDCE1 computing best route");
   const chain = getBestRoute(grid, snake);
   chain.push(...getPathToPose(chain.slice(-1)[0], snake));
-  const animationChain = extendSnakeTrail(chain, 20);
+  const animationChain = extendSnakeTrail(chain, snakeGrowth.maxLength);
+  const snakeLengths = getSnakeLengths(grid, chain);
   return Promise.all(outputs.map(async (out, i) => {
     if (!out)
       return;
@@ -2175,7 +2222,7 @@ var generateSnakeAnimation = async (source, outputs) => {
       case "svg": {
         console.log(`\uD83D\uDD8C creating svg (outputs[${i}])`);
         const { createSvg: createSvg2 } = await Promise.resolve().then(() => (init_svg_creator(), exports_svg_creator));
-        return createSvg2(grid, cells, animationChain, drawOptions, animationOptions);
+        return createSvg2(grid, cells, animationChain, drawOptions, animationOptions, snakeLengths);
       }
       case "gif": {
         console.log(`\uD83D\uDCF9 creating gif (outputs[${i}])`);

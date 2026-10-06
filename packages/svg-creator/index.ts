@@ -73,6 +73,7 @@ export const createSvg = (
   chain: Snake[],
   drawOptions: DrawOptions,
   animationOptions: { stepDurationMs: number },
+  snakeLengths?: number[],
 ) => {
   const width = (grid.width + 2) * drawOptions.sizeCell;
   const height = (grid.height + 5) * drawOptions.sizeCell;
@@ -90,7 +91,7 @@ export const createSvg = (
       (grid.height + 2) * drawOptions.sizeCell,
       duration,
     ),
-    createSnake(chain, drawOptions, duration),
+    createSnake(chain, drawOptions, duration, snakeLengths),
   ];
 
   const viewBox = [

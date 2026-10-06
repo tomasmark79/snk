@@ -10,10 +10,12 @@ Generates a snake game from a github user contributions graph
 
 ### This fork
 
-The profile action uses `tomasmark79/snk/svg-only@main`. SVG animations have a
-20-segment trail of NixOS snowflakes, five times the upstream four-segment body.
-The head keeps its original size. Each following logo loses 5 percentage points
-of the head's size, tapering from 100% to 5% across the 20 segments.
+The profile action uses `tomasmark79/snk/svg-only@main`. SVG animations start with
+four NixOS snowflakes and grow by one segment per ten eaten nonempty cells, up to
+20 segments. Revisited cells do not count twice. Adjust `snakeGrowth` in
+`packages/generate-snake-animation/getSnakeLengths.ts` to change this ratio or cap.
+The head keeps its original size. The visible body always tapers from 100% to 5%
+of the head's size, regardless of its current length, and resets at each loop.
 The original solver still plans the head's route; the longer visual tail follows
 that route and can overlap itself in tight turns. Snowflakes use fixed NixOS blue
 colors, so `color_snake` does not recolor SVG segments. GIF segments keep their

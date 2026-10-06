@@ -15,6 +15,7 @@ export const createSnake = (
   chain: Snake[],
   { sizeCell }: Options,
   duration: number,
+  lengths?: number[],
 ) => {
   const snakeN = chain[0] ? getSnakeLength(chain[0]) : 0;
 
@@ -26,25 +27,56 @@ export const createSnake = (
   }
 
   const svgElements = snakeParts.map((_, i) => {
-    // Original head size, tapering by 5 percentage points down to a tiny tail.
-    const s = sizeCell * 0.9 * Math.max(0.05, 1 - i * 0.05);
+    const s = sizeCell * 0.9;
 
     const m = (sizeCell - s) / 2;
 
-    return h("use", {
-      class: `s s${i}`,
-      href: "#nixos-snowflake",
-      x: m.toFixed(1),
-      y: m.toFixed(1),
-      width: s.toFixed(1),
-      height: s.toFixed(1),
-    });
+    return (
+      `<g class="s s${i}">` +
+      h("use", {
+        class: `b b${i}`,
+        href: "#nixos-snowflake",
+        x: m.toFixed(1),
+        y: m.toFixed(1),
+        width: s.toFixed(1),
+        height: s.toFixed(1),
+      }) +
+      "</g>"
+    );
   });
 
   const transform = ({ x, y }: Point) =>
     `transform:translate(${x * sizeCell}px,${y * sizeCell}px)`;
 
   const styles = [
+    `.b{transform-origin:${sizeCell / 2}px ${sizeCell / 2}px;animation:none linear ${duration}ms infinite}`,
+    ...snakeParts.flatMap((_, segment) => {
+      const scale = (length: number) =>
+        segment >= length ? 0 : 1 - (0.95 * segment) / Math.max(1, length - 1);
+      const sizes = chain.map((_, frame) => scale(lengths?.[frame] ?? snakeN));
+      const keyframes = sizes.flatMap((size, frame) => {
+        if (frame === 0) return [{ t: 0, style: `transform:scale(${size})` }];
+        if (size === sizes[frame - 1]) return [];
+        return [
+          {
+            t: (frame - 1) / chain.length,
+            style: `transform:scale(${sizes[frame - 1]})`,
+          },
+          { t: frame / chain.length, style: `transform:scale(${size})` },
+        ];
+      });
+      if (sizes.length) {
+        keyframes.push({
+          t: (chain.length - 1) / chain.length,
+          style: `transform:scale(${sizes.at(-1)})`,
+        });
+        keyframes.push({ t: 1, style: `transform:scale(${sizes[0]})` });
+      }
+      return [
+        createAnimation(`b${segment}`, keyframes),
+        `.b${segment}{transform:scale(${sizes[0] ?? 0});animation-name:b${segment}}`,
+      ];
+    }),
     `.s{
       shape-rendering: geometricPrecision;
       animation: none linear ${duration}ms infinite
