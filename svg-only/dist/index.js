@@ -117,7 +117,7 @@ var init_nixos_logo = __esm(() => {
 });
 
 // ../svg-creator/snake.ts
-var lerp = (k, a, b) => (1 - k) * a + k * b, createSnake = (chain, { sizeCell, sizeDot }, duration) => {
+var createSnake = (chain, { sizeCell }, duration) => {
   const snakeN = chain[0] ? getSnakeLength(chain[0]) : 0;
   const snakeParts = Array.from({ length: snakeN }, () => []);
   for (const snake of chain) {
@@ -125,12 +125,8 @@ var lerp = (k, a, b) => (1 - k) * a + k * b, createSnake = (chain, { sizeCell, s
     for (let i = cells.length;i--; )
       snakeParts[i].push(cells[i]);
   }
-  const svgElements = snakeParts.map((_, i, { length }) => {
-    const dMin = sizeDot;
-    const dMax = sizeCell * 0.9;
-    const iMax = Math.min(4, length);
-    const u = (1 - Math.min(i, iMax) / iMax) ** 2;
-    const s = lerp(u, dMin, dMax);
+  const svgElements = snakeParts.map((_, i) => {
+    const s = sizeCell * 1.8 * 0.99 ** i;
     const m = (sizeCell - s) / 2;
     return h("use", {
       class: `s s${i}`,
@@ -160,7 +156,7 @@ var lerp = (k, a, b) => (1 - k) * a + k * b, createSnake = (chain, { sizeCell, s
       ];
     })
   ].flat();
-  return { svgElements: [nixosLogo, ...svgElements], styles };
+  return { svgElements: [nixosLogo, ...svgElements.reverse()], styles };
 }, removeInterpolatedPositions = (arr) => arr.filter((u, i, arr2) => {
   if (i - 1 < 0 || i + 1 >= arr2.length)
     return true;
@@ -294,8 +290,9 @@ var getCellsFromGrid = ({ width, height }) => Array.from({ length: width }, (_, 
   }
   return livingCells;
 }, createSvg = (grid, cells, chain, drawOptions, animationOptions) => {
-  const width = (grid.width + 2) * drawOptions.sizeCell;
-  const height = (grid.height + 5) * drawOptions.sizeCell;
+  const padding = Math.ceil(drawOptions.sizeCell * 0.4);
+  const width = (grid.width + 2) * drawOptions.sizeCell + padding * 2;
+  const height = (grid.height + 5) * drawOptions.sizeCell + padding * 2;
   const duration = animationOptions.stepDurationMs * chain.length;
   const livingCells = createLivingCells(grid, chain, cells);
   const elements = [
@@ -304,8 +301,8 @@ var getCellsFromGrid = ({ width, height }) => Array.from({ length: width }, (_, 
     createSnake(chain, drawOptions, duration)
   ];
   const viewBox = [
-    -drawOptions.sizeCell,
-    -drawOptions.sizeCell * 2,
+    -drawOptions.sizeCell - padding,
+    -drawOptions.sizeCell * 2 - padding,
     width,
     height
   ].join(" ");
@@ -387,15 +384,15 @@ var drawGrid = (ctx, grid, cells, o) => {
 var init_drawGrid = () => {};
 
 // ../draw/drawSnake.ts
-var lerp2 = (k, a, b) => (1 - k) * a + k * b, clamp = (x, a, b) => Math.max(a, Math.min(b, x)), drawSnakeLerp = (ctx, snake0, snake12, k, o) => {
+var lerp = (k, a, b) => (1 - k) * a + k * b, clamp = (x, a, b) => Math.max(a, Math.min(b, x)), drawSnakeLerp = (ctx, snake0, snake12, k, o) => {
   const m = 0.8;
   const n = snake0.length / 2;
   for (let i = 0;i < n; i++) {
     const u = (i + 1) * 0.6 * (o.sizeCell / 16);
     const a = (1 - m) * (i / Math.max(n - 1, 1));
     const ki = clamp((k - a) / m, 0, 1);
-    const x = lerp2(ki, snake0[i * 2 + 0], snake12[i * 2 + 0]) - 2;
-    const y = lerp2(ki, snake0[i * 2 + 1], snake12[i * 2 + 1]) - 2;
+    const x = lerp(ki, snake0[i * 2 + 0], snake12[i * 2 + 0]) - 2;
+    const y = lerp(ki, snake0[i * 2 + 1], snake12[i * 2 + 1]) - 2;
     ctx.save();
     ctx.fillStyle = o.colorSnake;
     ctx.translate(x * o.sizeCell + u, y * o.sizeCell + u);

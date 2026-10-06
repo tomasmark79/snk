@@ -74,8 +74,9 @@ export const createSvg = (
   drawOptions: DrawOptions,
   animationOptions: { stepDurationMs: number },
 ) => {
-  const width = (grid.width + 2) * drawOptions.sizeCell;
-  const height = (grid.height + 5) * drawOptions.sizeCell;
+  const padding = Math.ceil(drawOptions.sizeCell * 0.4);
+  const width = (grid.width + 2) * drawOptions.sizeCell + padding * 2;
+  const height = (grid.height + 5) * drawOptions.sizeCell + padding * 2;
 
   const duration = animationOptions.stepDurationMs * chain.length;
 
@@ -94,8 +95,8 @@ export const createSvg = (
   ];
 
   const viewBox = [
-    -drawOptions.sizeCell,
-    -drawOptions.sizeCell * 2,
+    -drawOptions.sizeCell - padding,
+    -drawOptions.sizeCell * 2 - padding,
     width,
     height,
   ].join(" ");

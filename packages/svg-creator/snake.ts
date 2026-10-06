@@ -11,11 +11,9 @@ export type Options = {
   sizeDot: number;
 };
 
-const lerp = (k: number, a: number, b: number) => (1 - k) * a + k * b;
-
 export const createSnake = (
   chain: Snake[],
-  { sizeCell, sizeDot }: Options,
+  { sizeCell }: Options,
   duration: number,
 ) => {
   const snakeN = chain[0] ? getSnakeLength(chain[0]) : 0;
@@ -27,13 +25,9 @@ export const createSnake = (
     for (let i = cells.length; i--; ) snakeParts[i].push(cells[i]);
   }
 
-  const svgElements = snakeParts.map((_, i, { length }) => {
-    // compute snake part size
-    const dMin = sizeDot;
-    const dMax = sizeCell * 0.9;
-    const iMax = Math.min(4, length);
-    const u = (1 - Math.min(i, iMax) / iMax) ** 2;
-    const s = lerp(u, dMin, dMax);
+  const svgElements = snakeParts.map((_, i) => {
+    // Double the original head size, then shrink each following logo by 1%.
+    const s = sizeCell * 1.8 * 0.99 ** i;
 
     const m = (sizeCell - s) / 2;
 
@@ -75,7 +69,8 @@ export const createSnake = (
     }),
   ].flat();
 
-  return { svgElements: [nixosLogo, ...svgElements], styles };
+  // Paint the head last so the enlarged logo stays visible at overlaps.
+  return { svgElements: [nixosLogo, ...svgElements.reverse()], styles };
 };
 
 const removeInterpolatedPositions = <T extends Point>(arr: T[]) =>

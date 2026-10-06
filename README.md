@@ -12,6 +12,8 @@ Generates a snake game from a github user contributions graph
 
 The profile action uses `tomasmark79/snk/svg-only@main`. SVG animations have a
 20-segment trail of NixOS snowflakes, five times the upstream four-segment body.
+The head is twice its original size, and each following logo is 1% smaller than
+the preceding one.
 The original solver still plans the head's route; the longer visual tail follows
 that route and can overlap itself in tight turns. Snowflakes use fixed NixOS blue
 colors, so `color_snake` does not recolor SVG segments. GIF segments keep their
