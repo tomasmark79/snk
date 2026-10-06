@@ -126,7 +126,7 @@ var createSnake = (chain, { sizeCell }, duration) => {
       snakeParts[i].push(cells[i]);
   }
   const svgElements = snakeParts.map((_, i) => {
-    const s = sizeCell * 1.8 * 0.99 ** i;
+    const s = sizeCell * 0.9 * Math.max(0.05, 1 - i * 0.05);
     const m = (sizeCell - s) / 2;
     return h("use", {
       class: `s s${i}`,
@@ -290,9 +290,8 @@ var getCellsFromGrid = ({ width, height }) => Array.from({ length: width }, (_, 
   }
   return livingCells;
 }, createSvg = (grid, cells, chain, drawOptions, animationOptions) => {
-  const padding = Math.ceil(drawOptions.sizeCell * 0.4);
-  const width = (grid.width + 2) * drawOptions.sizeCell + padding * 2;
-  const height = (grid.height + 5) * drawOptions.sizeCell + padding * 2;
+  const width = (grid.width + 2) * drawOptions.sizeCell;
+  const height = (grid.height + 5) * drawOptions.sizeCell;
   const duration = animationOptions.stepDurationMs * chain.length;
   const livingCells = createLivingCells(grid, chain, cells);
   const elements = [
@@ -301,8 +300,8 @@ var getCellsFromGrid = ({ width, height }) => Array.from({ length: width }, (_, 
     createSnake(chain, drawOptions, duration)
   ];
   const viewBox = [
-    -drawOptions.sizeCell - padding,
-    -drawOptions.sizeCell * 2 - padding,
+    -drawOptions.sizeCell,
+    -drawOptions.sizeCell * 2,
     width,
     height
   ].join(" ");

@@ -26,8 +26,8 @@ export const createSnake = (
   }
 
   const svgElements = snakeParts.map((_, i) => {
-    // Double the original head size, then shrink each following logo by 1%.
-    const s = sizeCell * 1.8 * 0.99 ** i;
+    // Original head size, tapering by 5 percentage points down to a tiny tail.
+    const s = sizeCell * 0.9 * Math.max(0.05, 1 - i * 0.05);
 
     const m = (sizeCell - s) / 2;
 
@@ -69,7 +69,7 @@ export const createSnake = (
     }),
   ].flat();
 
-  // Paint the head last so the enlarged logo stays visible at overlaps.
+  // Paint the head last so it stays visible at overlaps.
   return { svgElements: [nixosLogo, ...svgElements.reverse()], styles };
 };
 
