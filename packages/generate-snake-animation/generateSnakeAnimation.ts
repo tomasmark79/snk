@@ -8,7 +8,7 @@ import type { DrawOptions } from "@snk/svg-creator";
 import { snake4 } from "@snk/types/__fixtures__/snake";
 import { cellsToGrid } from "./cellsToGrid";
 import { extendSnakeTrail } from "./extendSnakeTrail";
-import { getSnakeLengths, snakeGrowth } from "./getSnakeLengths";
+import { getSnakeLengths } from "./getSnakeLengths";
 
 export { basePalettes, palettes } from "./palettes";
 
@@ -58,8 +58,8 @@ export const generateSnakeAnimation = async (
   console.log("📡 computing best route");
   const chain = getBestRoute(grid, snake)!;
   chain.push(...getPathToPose(chain.slice(-1)[0], snake)!);
-  const animationChain = extendSnakeTrail(chain, snakeGrowth.maxLength);
   const snakeLengths = getSnakeLengths(grid, chain);
+  const animationChain = extendSnakeTrail(chain, snakeLengths.at(-1)!);
 
   return Promise.all(
     outputs.map(async (out, i) => {

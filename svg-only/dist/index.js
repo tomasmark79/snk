@@ -2104,8 +2104,7 @@ var extendSnakeTrail = (chain, length) => {
 // ../generate-snake-animation/getSnakeLengths.ts
 var snakeGrowth = {
   initialLength: 4,
-  cellsPerSegment: 10,
-  maxLength: 20
+  cellsPerSegment: 10
 };
 var getSnakeLengths = (grid, chain) => {
   const eaten = new Set;
@@ -2114,7 +2113,7 @@ var getSnakeLengths = (grid, chain) => {
     const y = getHeadY(snake);
     if (isInside(grid, x, y) && getColor(grid, x, y))
       eaten.add(`${x},${y}`);
-    return Math.min(snakeGrowth.maxLength, snakeGrowth.initialLength + Math.floor(eaten.size / snakeGrowth.cellsPerSegment));
+    return snakeGrowth.initialLength + Math.floor(eaten.size / snakeGrowth.cellsPerSegment);
   });
 };
 
@@ -2212,8 +2211,8 @@ var generateSnakeAnimation = async (source, outputs) => {
   console.log("\uD83D\uDCE1 computing best route");
   const chain = getBestRoute(grid, snake);
   chain.push(...getPathToPose(chain.slice(-1)[0], snake));
-  const animationChain = extendSnakeTrail(chain, snakeGrowth.maxLength);
   const snakeLengths = getSnakeLengths(grid, chain);
+  const animationChain = extendSnakeTrail(chain, snakeLengths.at(-1));
   return Promise.all(outputs.map(async (out, i) => {
     if (!out)
       return;
