@@ -8,6 +8,25 @@
 
 Generates a snake game from a github user contributions graph
 
+### This fork
+
+The profile action uses `tomasmark79/snk/svg-only@main`. SVG animations have a
+20-segment trail of NixOS snowflakes, five times the upstream four-segment body.
+The original solver still plans the head's route; the longer visual tail follows
+that route and can overlap itself in tight turns. Snowflakes use fixed NixOS blue
+colors, so `color_snake` does not recolor SVG segments. GIF segments keep their
+original appearance.
+
+After editing the TypeScript sources, rebuild the action with
+`bun install --frozen-lockfile` and `bun run build:action`, then copy the generated
+`packages/action/dist/` contents into `svg-only/dist/` and commit the bundle along
+with the source changes. GitHub Actions executes this bundle.
+
+The snowflake is adapted to flat colors from
+[NixOS artwork](https://github.com/NixOS/nixos-artwork/tree/master/logo), designed
+by Simon Frankau and revised by Tim Cuthbertson, under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
 <picture>
   <source
     media="(prefers-color-scheme: dark)"

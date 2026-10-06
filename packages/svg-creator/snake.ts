@@ -3,6 +3,7 @@ import type { Snake } from "@snk/types/snake";
 import type { Point } from "@snk/types/point";
 import { h } from "./xml-utils";
 import { createAnimation } from "./css-utils";
+import { nixosLogo } from "./nixos-logo";
 
 export type Options = {
   colorSnake: string;
@@ -28,7 +29,7 @@ export const createSnake = (
 
   const svgElements = snakeParts.map((_, i, { length }) => {
     // compute snake part size
-    const dMin = sizeDot * 0.8;
+    const dMin = sizeDot;
     const dMax = sizeCell * 0.9;
     const iMax = Math.min(4, length);
     const u = (1 - Math.min(i, iMax) / iMax) ** 2;
@@ -36,16 +37,13 @@ export const createSnake = (
 
     const m = (sizeCell - s) / 2;
 
-    const r = Math.min(4.5, (4 * s) / sizeDot);
-
-    return h("rect", {
+    return h("use", {
       class: `s s${i}`,
+      href: "#nixos-snowflake",
       x: m.toFixed(1),
       y: m.toFixed(1),
       width: s.toFixed(1),
       height: s.toFixed(1),
-      rx: r.toFixed(1),
-      ry: r.toFixed(1),
     });
   });
 
@@ -53,9 +51,8 @@ export const createSnake = (
     `transform:translate(${x * sizeCell}px,${y * sizeCell}px)`;
 
   const styles = [
-    `.s{ 
+    `.s{
       shape-rendering: geometricPrecision;
-      fill: var(--cs);
       animation: none linear ${duration}ms infinite
     }`,
 
@@ -78,7 +75,7 @@ export const createSnake = (
     }),
   ].flat();
 
-  return { svgElements, styles };
+  return { svgElements: [nixosLogo, ...svgElements], styles };
 };
 
 const removeInterpolatedPositions = <T extends Point>(arr: T[]) =>

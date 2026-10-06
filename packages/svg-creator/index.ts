@@ -116,7 +116,10 @@ export const createSvg = (
     }).replace("/>", ">"),
 
     "<desc>",
-    "Generated with https://github.com/Platane/snk",
+    "Generated with https://github.com/tomasmark79/snk (fork of Platane/snk). ",
+    "NixOS snowflake by Simon Frankau and Tim Cuthbertson, CC BY 4.0 ",
+    "(https://creativecommons.org/licenses/by/4.0/), adapted to flat colors. ",
+    "Source: https://github.com/NixOS/nixos-artwork/tree/master/logo",
     "</desc>",
 
     "<style>",

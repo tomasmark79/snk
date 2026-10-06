@@ -7,6 +7,7 @@ import { getPathToPose } from "@snk/solver/getPathToPose";
 import type { DrawOptions } from "@snk/svg-creator";
 import { snake4 } from "@snk/types/__fixtures__/snake";
 import { cellsToGrid } from "./cellsToGrid";
+import { extendSnakeTrail } from "./extendSnakeTrail";
 
 export { basePalettes, palettes } from "./palettes";
 
@@ -56,6 +57,8 @@ export const generateSnakeAnimation = async (
   console.log("📡 computing best route");
   const chain = getBestRoute(grid, snake)!;
   chain.push(...getPathToPose(chain.slice(-1)[0], snake)!);
+  // Keep the proven route solver; extend the visible trail to five times its length.
+  const animationChain = extendSnakeTrail(chain, 20);
 
   return Promise.all(
     outputs.map(async (out, i) => {
@@ -65,12 +68,24 @@ export const generateSnakeAnimation = async (
         case "svg": {
           console.log(`🖌 creating svg (outputs[${i}])`);
           const { createSvg } = await import("@snk/svg-creator");
-          return createSvg(grid, cells, chain, drawOptions, animationOptions);
+          return createSvg(
+            grid,
+            cells,
+            animationChain,
+            drawOptions,
+            animationOptions,
+          );
         }
         case "gif": {
           console.log(`📹 creating gif (outputs[${i}])`);
           const { createGif } = await import("@snk/gif-creator");
-          return createGif(grid, cells, chain, drawOptions, animationOptions);
+          return createGif(
+            grid,
+            cells,
+            animationChain,
+            drawOptions,
+            animationOptions,
+          );
         }
       }
     }),
